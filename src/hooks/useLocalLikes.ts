@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { CatBreed } from '../types/cat';
+import { CatBreed, LikedCatBreed } from '../types/cat';
 
 export function useLocalLikes() {
-  const [likedCats, setLikedCats] = useState<CatBreed[]>([]);
+  const [likedCats, setLikedCats] = useState<LikedCatBreed[]>([]);
 
   const addLike = (cat: CatBreed, urlImage: string) => {
     if (!likedCats.some(likedCat => likedCat.id === cat.id)) {

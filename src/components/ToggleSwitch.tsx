@@ -91,9 +91,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  activeIcon: {
-    color: '#FFFFFF',
-  },
   thumb: {
     width: 46,
     height: 32,
@@ -103,8 +100,5 @@ const styles = StyleSheet.create({
     top: 4,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  thumbIcon: {
-    fontSize: 16,
   },
 });

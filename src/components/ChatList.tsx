@@ -6,19 +6,15 @@ import {
   FlatList,
   Image,
 } from 'react-native';
-import { CatBreed } from '../types/cat';
+import { LikedCatBreed } from '../types/cat';
 
 interface ChatListProps {
-  likedCats: CatBreed[];
-}
-
-interface CatChat extends CatBreed {
-  urlImage: string;
+  likedCats: LikedCatBreed[];
 }
 
 export const ChatList: React.FC<ChatListProps> = ({ likedCats }) => {
-  
-  const renderCatItem = ({ item }: { item: CatChat }) => (
+
+  const renderCatItem = ({ item }: { item: LikedCatBreed }) => (
     <View style={styles.catItem}>
       <Image 
         source={{ uri: item.urlImage }} 
@@ -49,7 +45,7 @@ export const ChatList: React.FC<ChatListProps> = ({ likedCats }) => {
     <View style={styles.container}>
       <Text style={styles.headerTitle}>Your Matches ({likedCats.length})</Text>
       <FlatList
-        data={likedCats as CatChat[]}
+        data={likedCats}
         keyExtractor={(item) => item.id}
         renderItem={renderCatItem}
         showsVerticalScrollIndicator={false}

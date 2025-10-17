@@ -14,6 +14,11 @@ import { CatCard } from './CatCard';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+const SWIPE_THRESHOLD = 50;
+const SWIPE_ANIMATION_DELAY = 50;
+const SWIPE_RESET_DELAY = 500;
+const PREFETCH_THRESHOLD = 2;
+
 interface CatListProps {
   onLike?: (cat: CatBreed, urlImage: string) => void;
   onDislike?: (cat: CatBreed) => void;
@@ -38,9 +43,10 @@ export const CatList: React.FC<CatListProps> = ({
     isFetchingNextPage 
   } = useInfiniteCatsBreeds();
   
-  const [isSwipingLeft, setIsSwipingLeft] = React.useState(false);
-  const [isSwipingRight, setIsSwipingRight] = React.useState(false);
-  const [isManualSwipe, setIsManualSwipe] = React.useState(false);
+  const [swipeState, setSwipeState] = React.useState<{
+    direction: 'left' | 'right' | null;
+    isManual: boolean;
+  }>({ direction: null, isManual: false });
   const deckSwiperRef = React.useRef<any>(null);
 
 
@@ -50,33 +56,30 @@ export const CatList: React.FC<CatListProps> = ({
     if (swipeDirection && deckSwiperRef.current) {
       setTimeout(() => {
         if (deckSwiperRef.current) {
+          setSwipeState({ direction: swipeDirection, isManual: false });
           if (swipeDirection === 'left') {
-            setIsSwipingLeft(true);
             deckSwiperRef.current.swipeLeft();
           } else if (swipeDirection === 'right') {
-            setIsSwipingRight(true);
             deckSwiperRef.current.swipeRight();
           }
         }
-      }, 50);
+      }, SWIPE_ANIMATION_DELAY);
     }
   }, [swipeDirection]);
 
   React.useEffect(() => {
-    if (isSwipingLeft || isSwipingRight) {
+    if (swipeState.direction) {
       const timer = setTimeout(() => {
-        setIsSwipingLeft(false);
-        setIsSwipingRight(false);
-        setIsManualSwipe(false);
-      }, 500);
+        setSwipeState({ direction: null, isManual: false });
+      }, SWIPE_RESET_DELAY);
       return () => clearTimeout(timer);
     }
-  }, [isSwipingLeft, isSwipingRight]);
+  }, [swipeState.direction]);
 
   React.useEffect(() => {
     const remainingCards = cats.length - propCurrentIndex;
-    
-    if (remainingCards <= 2 && hasNextPage && !isFetchingNextPage) {
+
+    if (remainingCards <= PREFETCH_THRESHOLD && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, [propCurrentIndex, cats.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
@@ -115,22 +118,12 @@ export const CatList: React.FC<CatListProps> = ({
   return (
     <View style={styles.swiperContainer}>
       <View style={styles.overlayContainer}>
-        {((swipeDirection === 'left' || isSwipingLeft) && !isManualSwipe) && (
+        {swipeState.direction === 'left' && (
           <View style={[styles.customTag, styles.nopeTag]}>
             <Text style={styles.tagText}>NOPE</Text>
           </View>
         )}
-        {((swipeDirection === 'right' || isSwipingRight) && !isManualSwipe) && (
-          <View style={[styles.customTag, styles.likeTag]}>
-            <Text style={styles.tagText}>LIKE</Text>
-          </View>
-        )}
-        {isManualSwipe && isSwipingLeft && (
-          <View style={[styles.customTag, styles.nopeTag]}>
-            <Text style={styles.tagText}>NOPE</Text>
-          </View>
-        )}
-        {isManualSwipe && isSwipingRight && (
+        {swipeState.direction === 'right' && (
           <View style={[styles.customTag, styles.likeTag]}>
             <Text style={styles.tagText}>LIKE</Text>
           </View>
@@ -154,19 +147,14 @@ export const CatList: React.FC<CatListProps> = ({
           />
         )}
         onSwiping={(x, y) => {
-          if (x < -50) {
-            setIsManualSwipe(true);
-            setIsSwipingLeft(true);
-            setIsSwipingRight(false);
-          } else if (x > 50) {
-            setIsManualSwipe(true);
-            setIsSwipingRight(true);
-            setIsSwipingLeft(false);
+          if (x < -SWIPE_THRESHOLD) {
+            setSwipeState({ direction: 'left', isManual: true });
+          } else if (x > SWIPE_THRESHOLD) {
+            setSwipeState({ direction: 'right', isManual: true });
           }
         }}
         onSwipedLeft={(index) => {
-          setIsSwipingLeft(false);
-          setIsManualSwipe(false);
+          setSwipeState({ direction: null, isManual: false });
           const cat = cats?.[index];
           if (cat?.breeds?.[0]) {
             onDislike?.(cat.breeds[0]);
@@ -174,8 +162,7 @@ export const CatList: React.FC<CatListProps> = ({
           onIndexChange?.(index + 1);
         }}
         onSwipedRight={(index) => {
-          setIsSwipingRight(false);
-          setIsManualSwipe(false);
+          setSwipeState({ direction: null, isManual: false });
           const cat = cats?.[index];
           if (cat?.breeds?.[0]) {
             onLike?.(cat.breeds[0], cat.url);

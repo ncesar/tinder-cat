@@ -36,4 +36,7 @@ export interface CatBreed {
   stranger_friendly: number;
   vocalisation: number;
 }
-  
+
+export interface LikedCatBreed extends CatBreed {
+  urlImage: string;
+}
