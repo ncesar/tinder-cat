@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { CatBreed } from '../types/cat';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -16,14 +17,29 @@ interface CatCardProps {
 }
 
 export const CatCard: React.FC<CatCardProps> = ({ cat, url }) => {
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
     <View style={styles.card}>
-      <Image source={{ uri: url }} style={styles.image} />
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FF6B6B" />
+        </View>
+      )}
+      <Image
+        source={{ uri: url }}
+        style={styles.image}
+        contentFit="cover"
+        transition={300}
+        onLoadStart={() => setIsLoading(true)}
+        onLoadEnd={() => setIsLoading(false)}
+        cachePolicy="memory-disk"
+      />
       <View style={styles.overlay}>
         <View style={styles.infoBox}>
           <View style={styles.leftInfo}>
             <Text style={styles.name}>{cat.name}</Text>
-            <Text style={styles.location}>{cat.origin}</Text> 
+            <Text style={styles.location}>{cat.origin}</Text>
             <Text style={styles.temperament}>{cat.temperament}</Text>
           </View>
           <View style={styles.rightInfo}>
@@ -44,6 +60,18 @@ const styles = StyleSheet.create({
     pointerEvents: 'auto',
     position: 'relative',
     zIndex: 10,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 20,
+    zIndex: 1,
   },
   image: {
     width: '100%',
